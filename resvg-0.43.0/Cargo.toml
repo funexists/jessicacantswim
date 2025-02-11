@@ -1,8 +1,0 @@
-[workspace]
-members = [
-    "crates/resvg",
-    "crates/usvg",
-    "crates/c-api",
-]
-default-members = ["crates/resvg"]
-resolver = "2"

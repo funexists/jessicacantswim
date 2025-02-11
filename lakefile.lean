@@ -1,33 +1,21 @@
 import Lake
-open System Lake DSL
+open Lake DSL
 
-def optionUseBundle : Bool := get_config? bundle == some "on"
+require raylean from git "https://github.com/funexists/raylean.git" @ "3a60f54222e06767daa93e50a8fcbc68975eee4c" with
+  NameMap.empty
+    |>.insert `bundle "off"
+    |>.insert `resvg "disable"
 
-def optionDisableResvg : Bool := get_config? resvg == some "disable"
+package "jessicacantswim" where
+  srcDir := "src"
 
-require batteries from git "https://github.com/leanprover-community/batteries.git" @ "v4.14.0"
-require mathlib from git "https://github.com/leanprover-community/mathlib4.git" @ "v4.14.0"
-
-package «raylean» where
-  srcDir := "lean"
-
-lean_lib «Raylean» where
-  precompileModules := true
-
-lean_lib «Examples» where
-  precompileModules := true
-
-lean_lib «ECS»
-
-lean_lib «Lens»
+lean_lib «JessicaCantSwim» where
 
 @[default_target]
-lean_exe «raylean» where
+lean_exe "jessicacantswim" where
   root := `Main
   moreLinkArgs := Id.run do
     let mut args := #[ "lib/libraylib.a"]
-    if not optionDisableResvg then
-      args := args ++ #["lib/libresvg.a"]
     if (← System.Platform.isOSX) then
       args := args ++
         #[ "-isysroot", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
@@ -36,35 +24,3 @@ lean_exe «raylean» where
          , "-framework", "OpenGL"
          ]
     args
-
-lean_exe «ecs-example» where
-  root := `Examples.ECS
-  moreLinkArgs := Id.run do
-    let mut args := #[ "lib/libraylib.a" , "lib/libresvg.a"]
-    if (← System.Platform.isOSX) then
-      args := args ++
-        #[ "-isysroot", "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
-         , "-framework", "IOKit"
-         , "-framework", "Cocoa"
-         , "-framework", "OpenGL"
-         ]
-    args
-
-target raylib_bindings.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "c" / "raylib_bindings.o"
-  let includes := pkg.dir / "c" / "include"
-  let srcJob ← inputTextFile <| pkg.dir / "c" / "raylib_bindings.c"
-  let raylibInclude := pkg.dir / "raylib-5.0" / "src"
-  let resvgInclude := pkg.dir / "resvg-0.43.0" / "crates" / "c-api"
-  let weakArgs := #["-I", s!"{raylibInclude}", "-I", s!"{includes}", "-I", s!"{resvgInclude}"]
-  let mut traceArgs := #["-fPIC"]
-  if optionDisableResvg then
-    traceArgs := traceArgs ++ #["-DRAYLEAN_NO_RESVG"]
-  if not (optionUseBundle) then
-    traceArgs := traceArgs ++ #["-DRAYLEAN_NO_BUNDLE"]
-  buildLeanO oFile srcJob weakArgs traceArgs
-
-extern_lib libleanffi pkg := do
-  let ffiO ← raylib_bindings.o.fetch
-  let name := nameToStaticLib "rayliblean"
-  buildStaticLib (pkg.nativeLibDir / name) #[ffiO]
