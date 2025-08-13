@@ -29,6 +29,23 @@ raylib_extra_make_variables := ""
 static_lib_path := join(justfile_directory(), "lib")
 raylib_src_path := join(justfile_directory(), "raylib-5.0", "src")
 
+# set to the C compiler used to build native libraries (e.g raylib CC, and lake LEAN_CC)
+native_compiler := if os() == "macos" { "/usr/bin/clang" } else { "clang" }
+
+# The path to the GMP library root
+#
+# On macOS use `brew install gmp` to install it
+gmp_prefix := if os() == "macos" { shell("brew --prefix gmp") } else { "" }
+
+# The path to libuv root
+#
+# On macOS use `brew install libuv` to install it
+libuv_prefix := if os() == "macos" { shell("brew --prefix libuv") } else { "" }
+
+# The value of LIBRARY_PATH used when running `just build`. This is passed to
+# the C compiler when lake builds native objects.
+library_path := if gmp_prefix == "" { "" } else if libuv_prefix == "" { "" } else {gmp_prefix + "/lib:" + libuv_prefix + "/lib"}
+
 [private]
 default:
     @just --list
@@ -50,7 +67,7 @@ build_raylib:
 
 # build both the raylib library and the Lake project
 build: build_raylib
-    lake build
+    LIBRARY_PATH={{library_path}} LEAN_CC={{native_compiler}} lake build
 
 # clean only the Lake project
 clean:

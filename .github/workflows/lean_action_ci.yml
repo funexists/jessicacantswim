@@ -24,9 +24,15 @@ jobs:
           test: false
           lint: false
 
+      - name: install libgmp, libuv
+        if: runner.os == 'macOS'
+        run: |
+          brew install gmp
+          brew install libuv
+
       - name: Install raylib deps
         if: runner.os == 'Linux'
-        run: sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev
+        run: sudo apt-get install -y --no-install-recommends libuv1-dev libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev
 
       # inherits lake installation from the build step
       - name: build
