@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-require raylean from git "https://github.com/funexists/raylean.git" @ "3a60f54222e06767daa93e50a8fcbc68975eee4c" with
+require raylean from git "https://github.com/funexists/raylean.git" @ "96b9b4762e2e042decb27d69beebcb779d84a004" with
   NameMap.empty
     |>.insert `bundle "off"
     |>.insert `resvg "disable"
